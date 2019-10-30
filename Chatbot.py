@@ -1,3 +1,4 @@
+#Módulos
 import json
 import sys
 import os
@@ -8,6 +9,7 @@ import random
 import pyttsx3 as tts
 import speech_recognition as sr
 
+#Classe do Chatbot
 class Chatbot():
     def __init__(self, nome):
         try:    
@@ -23,7 +25,8 @@ class Chatbot():
         self.historico = [None]
         print('Olá, me chamo {} e estou aqui para fazer o que eu puder para satisfazer seus desejos :)'.format(self.nome))
 
-    def escutaescrito(self, frase=None):
+    #Função para pegar o que o usuário fala e fazer algumas alterações
+    def escuta(self, frase=None):
         if frase == None:    
             frase = input('>')
         frase = str(frase)
@@ -31,19 +34,9 @@ class Chatbot():
             return frase
         frase = frase.lower()
         return frase
-    
-    def escutavoz(self, frase=None):
-        rec = sr.Recognizer()
-        with sr.Microphone() as fala:
-            frase = rec.listen(fala)
-            frase = rec.recognize_google(frase, language='pt-BR')
-            print(frase)
-        if 'executa ' in frase:
-            return frase
-        frase = frase.lower()
-        return frase
 
-    def pensa(self, frase, tipo):
+    #Função para processar o que o usuário falou
+    def pensa(self, frase):
         if frase in self.dicio:
             return self.dicio[frase]
         ultimaFrase = self.historico[-1]
@@ -55,17 +48,11 @@ class Chatbot():
                 resp = 'Não'
             return resp
         if frase == 'aprenda':
-            if tipo == 0:
-                return 'Digite a frase:'
-            if tipo == 1:
-                return 'Diga a frase'
-        if ultimaFrase == 'Digite a frase:' or ultimaFrase == 'Diga a frase':
+                return 'Digite a frase: '
+        if ultimaFrase == 'Digite a frase: ':
             self.chave = frase
-            if tipo == 0:
-                return 'Digite a resposta:'
-            if tipo == 1:
-                return 'Diga a resposta'
-        if ultimaFrase == 'Digite a resposta:' or ultimaFrase == 'Diga a resposta':
+            return 'Digite a resposta: '
+        if ultimaFrase == 'Digite a resposta: ':
             resp = frase
             self.dicio[self.chave] = resp
             self.grava_memoria()
@@ -80,6 +67,7 @@ class Chatbot():
             pass
         return 'Não entendi'
 
+    #Função de reconhecimento de usuário por nome
     def pega_nome(self, frase):
         nomesp = frase.split()
         if len(nomesp) > 2:
@@ -112,40 +100,24 @@ class Chatbot():
                     return 'Prazer em conhecê-lo {}'.format(frase.title())    
                 return 'Prazer em conhecê-lo {}'.format(frase.title())
 
+    #Função para salvar informações no arquivo json do bot
     def grava_memoria(self):
         memoria = open(self.nome+'.json', 'w')
         json.dump([self.conhecidos, self.dicio], memoria)
         memoria.close()
 
-    def fala(self, frase, tipo):
-        if tipo == 0:
-            if 'executa ' in frase:
-                plataforma = sys.platform
-                comando = frase.replace('executa ', '')
-                if 'win' in plataforma:
-                    os.startfile(comando)
-                if 'linux' in plataforma:
-                    try:
-                        sp.Popen(comando)
-                    except FileNotFoundError:
-                        sp.Popen(['xdg-open', comando])  
-            else:
-                print(frase)
-                self.historico.append(frase)
-                print(self.historico)
-        if tipo == 1:
-            if 'executa ' in frase:
-                plataforma = sys.platform
-                comando = frase.replace('executa ', '')
-                if 'win' in plataforma:
-                    os.startfile(comando)
-                if 'linux' in plataforma:
-                    try:
-                        sp.Popen(comando)
-                    except FileNotFoundError:
-                        sp.Popen(['xdg-open', comando])  
-            else:    
-                en = tts.init()
-                en.say(frase)
-                en.runAndWait()
-                self.historico.append(frase)
+    #Função para o bot fazer o que ele processou
+    def fala(self, frase):
+        if 'executa ' in frase:
+            plataforma = sys.platform
+            comando = frase.replace('executa ', '')
+            if 'win' in plataforma:
+                os.startfile(comando)
+            if 'linux' in plataforma:
+                try:
+                    sp.Popen(comando)
+                except FileNotFoundError:
+                    sp.Popen(['xdg-open', comando])  
+        else:
+            print(frase)
+            self.historico.append(frase)
